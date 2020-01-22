@@ -12,6 +12,7 @@ import logging
 import tensorflow as tf
 from tensorflow.keras import backend as K
 from tensorflow.keras.applications.inception_v3 import InceptionV3
+from tensorflow.keras.applications.mobilenet_v2 import MobileNetV2
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
@@ -25,7 +26,7 @@ INPUT_TENSOR_NAME = "inception_v3_input"
 
 
 def keras_model_fn():
-    base_model = InceptionV3(input_shape=IMG_SHAPE, weights='imagenet', include_top=False)
+    base_model = MobileNetV2(input_shape=IMG_SHAPE, weights='imagenet', include_top=False)
     base_model.trainable = False
     model = Sequential()
     model.add(base_model)
@@ -78,7 +79,8 @@ def save_model(model, output):
     
     
 #     tf.saved_model.save(model, output+'/1/')
-    model.save(output + '/1/')
+    tf.saved_model.save(model, output + '/1/')
+    #model.save(output + '/1/')
     print("Model successfully saved at: {}".format(output))
     return
 
@@ -92,9 +94,10 @@ def main(args):
 
     model.fit_generator(
         train_generator,
-        epochs=args.epochs,
-        validation_data=validation_generator,
-        validation_steps=800)
+        epochs=args.epochs
+#         ,validation_data=validation_generator,
+#         validation_steps=800
+    )
 
     save_model(model, args.model_output_dir)
 
