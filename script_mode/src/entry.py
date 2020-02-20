@@ -9,6 +9,8 @@ Created on Mon Jan  6 02:43:09 2020
 import argparse
 import os
 import logging
+import math
+import matplotlib.pyplot as plt
 import tensorflow as tf
 from tensorflow.keras import backend as K
 from tensorflow.keras.applications.inception_v3 import InceptionV3
@@ -16,9 +18,11 @@ from tensorflow.keras.applications.mobilenet_v2 import MobileNetV2
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
+from tensorflow.keras import regularizers
 
 IMG_SIZE = 160
 BATCH_SIZE = 40
+CLASSES = 14
 
 IMG_SHAPE = (IMG_SIZE, IMG_SIZE, 3)
 
@@ -30,9 +34,11 @@ def keras_model_fn():
     base_model.trainable = False
     model = Sequential()
     model.add(base_model)
-    model.add(layers.Flatten())
-    model.add(layers.Dense(units=256, activation='relu'))
-    model.add(layers.Dense(units=5, activation='softmax'))
+    model.add(layers.GlobalAveragePooling2D())
+#     model.add(layers.Flatten())
+#     model.add(layers.Dense(units=1024, activation='relu',        kernel_initializer='he_normal',kernel_regularizer=regularizers.l2(0.01)))
+    model.add(layers.Dense(units=512, activation='relu',        kernel_initializer='he_normal',kernel_regularizer=regularizers.l2(0.01)))
+    model.add(layers.Dense(units=CLASSES, kernel_initializer='glorot_normal', activation='softmax'))
 
     model.compile(optimizer='adam',
                   loss='categorical_crossentropy',
@@ -92,12 +98,41 @@ def main(args):
     model = keras_model_fn()
     print(model.summary())
 
-    model.fit_generator(
+    history = model.fit_generator(
         train_generator,
-        epochs=args.epochs
-#         ,validation_data=validation_generator,
-#         validation_steps=800
+        steps_per_epoch = math.ceil(train_generator.n / train_generator.batch_size),
+        epochs=args.epochs,
+        validation_data=validation_generator,
+        validation_steps= math.ceil(validation_generator.n / validation_generator.batch_size)
     )
+    
+    acc = history.history['accuracy']
+    val_acc = history.history['val_accuracy']
+
+    loss = history.history['loss']
+    val_loss = history.history['val_loss']
+
+    plt.figure(figsize=(8, 8))
+    plt.subplot(2, 1, 1)
+    plt.plot(acc, label='Training Accuracy')
+    plt.plot(val_acc, label='Validation Accuracy')
+    plt.legend(loc='lower right')
+    plt.ylabel('Accuracy')
+    plt.ylim([min(plt.ylim()),1])
+    plt.title('Training and Validation Accuracy')
+
+    plt.subplot(2, 1, 2)
+    plt.plot(loss, label='Training Loss')
+    plt.plot(val_loss, label='Validation Loss')
+    plt.legend(loc='upper right')
+    plt.ylabel('Cross Entropy')
+    plt.ylim([0,max(plt.ylim())])
+    plt.title('Training and Validation Loss')
+    
+    if not os.path.exists(args.model_output_dir + '/1'):
+        os.makedirs(args.model_output_dir + '/1')
+    
+    plt.savefig(args.model_output_dir + '/1/plot.jpg', dpi=300)
 
     save_model(model, args.model_output_dir)
 

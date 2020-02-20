@@ -5,7 +5,20 @@ import numpy as np
 from PIL import Image
 import logging
 
-LABELS = ['air_conditioner', 'air_cooler', 'camera', 'gas_stove', 'geyser']
+LABELS = ['air_conditioner',
+ 'air_cooler',
+ 'camera',
+ 'desktop',
+ 'geyser',
+ 'ipod_mp3_player',
+ 'laptop',
+ 'microwave_oven',
+ 'music_system',
+ 'refrigerator',
+ 'tv',
+ 'video_game',
+ 'washing_machine',
+ 'water_purifier']
 
 def input_handler(data, context):
     """ Pre-process request input before it is sent to TensorFlow Serving REST API
