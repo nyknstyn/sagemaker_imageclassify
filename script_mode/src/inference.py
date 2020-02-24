@@ -74,7 +74,7 @@ def _processOutput(predictions):
         logging.info(prediction)
         logging.info(type(prediction))
         top_labels = []
-        sorted_label = np.flip(np.argsort(prediction))[:2]
+        sorted_label = np.flip(np.argsort(prediction))[:3]
         for index in sorted_label:
             current_label = {
                 "label": LABELS[index],
@@ -92,7 +92,7 @@ def _processOutput(predictions):
 #     return keras.preprocessing.image.img_to_array(img) * 1./255
 
 def _loadImageV2(url):
-    pil_image = Image.open(urllib.request.urlopen(url))
+    pil_image = Image.open(urllib.request.urlopen(url)).convert("RGB")
     pil_image = pil_image.resize((160,160))
     pil_array = np.array(pil_image)
     return pil_array * 1./255
